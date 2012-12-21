@@ -16,27 +16,28 @@ import lec.crawer.ParserFactory;
 import lec.crawer.model.HtmlItem;
 import lec.crawer.model.UrlItem;
 import lec.crawer.parse.IHtmlParser;
-import lec.crawer.queue.DownloadQueue;
+import lec.crawer.queue.DownloadHtmlQueue;
 
 public class DownloadWorker implements Runnable {
     public static Logger logger=LoggerFactory.getLogger(DownloadWorker.class);
 		public void run() {
-			UrlItem item = DownloadQueue.deQueue();
+			UrlItem item = DownloadHtmlQueue.deQueue();
 			while (item != null) {
 					HtmlItem html;
 					try {
 						html = download(item);
 					logger.info("save:"+item.getUrl());
 					html.Save();
-					DownloadQueue.setVisitedItem(item);		
+					DownloadHtmlQueue.setVisitedItem(item);		
 					List<UrlItem> list=html.getUrlList();
 					for(UrlItem uitem :list){
-					    DownloadQueue.enQueue(uitem);
+					    DownloadHtmlQueue.enQueue(uitem);
 					}
 					Thread.sleep(1000);
-					item = DownloadQueue.deQueue();
+					item = DownloadHtmlQueue.deQueue();
 					if(item==null){
 						logger.info("队列为空!");
+						System.out.println("队列为空!");
 					}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -44,7 +45,7 @@ public class DownloadWorker implements Runnable {
 				}
 
 		}
-		public  synchronized HtmlItem download(UrlItem item) throws IOException {
+		public static synchronized HtmlItem download(UrlItem item) throws IOException {
             logger.info("download:"+item.getUrl());
             
 			HttpTransfer request = Http.createRequest("GET", item.getUrl());

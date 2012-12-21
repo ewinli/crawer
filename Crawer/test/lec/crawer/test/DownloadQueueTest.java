@@ -7,7 +7,7 @@ import java.util.concurrent.Executors;
 
 import org.junit.*;
 import lec.crawer.model.UrlItem;
-import lec.crawer.queue.DownloadQueue;
+import lec.crawer.queue.DownloadHtmlQueue;
 
 import cn.uc.lec.cache.CacheOperator;
 
@@ -31,18 +31,18 @@ public class DownloadQueueTest {
 		int decount = rand.nextInt(20) + 50;
 
 		for (int i = 0; i < count; i++) {
-			DownloadQueue.enQueue(new UrlItem("http://www.baidu.com/" + i));
+			DownloadHtmlQueue.enQueue(new UrlItem("http://www.baidu.com/" + i));
 		}
 
 		for (int i = 0; i < decount; i++) {
-			UrlItem item= DownloadQueue.deQueue();
+			UrlItem item= DownloadHtmlQueue.deQueue();
 
 		}
 		
-		boolean val = (DownloadQueue.getWaitingCount() == (count - decount));
+		boolean val = (DownloadHtmlQueue.getWaitingCount() == (count - decount));
 		System.out.println("======" + (index++) + "======="
-				+ DownloadQueue.getWaitingCount() + "||"
-				+ (DownloadQueue.getVisitedCount())+"||"+(count - decount));
+				+ DownloadHtmlQueue.getWaitingCount() + "||"
+				+ (DownloadHtmlQueue.getVisitedCount())+"||"+(count - decount));
 
 		if (!val)
 			error++;

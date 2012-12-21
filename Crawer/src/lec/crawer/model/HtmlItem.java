@@ -9,16 +9,18 @@ import cn.uc.easy.utils.MD5Utils;
 import jodd.http.HttpTransfer;
 import jodd.io.FileUtil;
 import jodd.util.StringUtil;
+import jodd.util.URLCoder;
 import lec.crawer.DownloadManager;
 import lec.crawer.ParserFactory;
 import lec.crawer.parse.IHtmlParser;
-import lec.crawer.queue.DownloadQueue;
+import lec.crawer.parse.IParseResult;
+import lec.crawer.queue.DownloadHtmlQueue;
 
 public class HtmlItem implements IItem {
 	private String content;
 	private HttpTransfer response;
 	private UrlItem urlItem;
-    private  IHtmlParser parser;
+    private IHtmlParser parser;
     private String encoding;
     private String contentType;
 	public String getContent() {
@@ -70,24 +72,30 @@ public class HtmlItem implements IItem {
 		this.contentType=parser.getContentType(); 
         this.encoding=parser.getEncoding();
         this.content=parser.getContent();
-
-
 	}
 
 	
 	public List<UrlItem> getUrlList(){
-		List<UrlItem> list= parser.getUrlList();
+		List<UrlItem> list= parser.getHtmlUrlList();
 		return list;
 	}
 	
 	public void Save() throws IOException{
-		Save(DownloadManager.getSavePath());
+		Save(DownloadManager.getSourcePath(),DownloadManager.getResultPath());
 	}
 	
 	
-	public void Save(String path) throws IOException{
-		String name=urlItem.getKey()+".html";		
-	    FileUtil.writeString(path+"/"+name, content, encoding);
+	public void Save(String sourcePath,String resultPath) throws IOException{
+		IParseResult result=parser.parse();
+		if(result!=null){
+		 String name= URLCoder.encodePath( result.getTitle());	
+		  name=name.replace("/","");
+		  if(name.length()>10){
+			  name=name.substring(0,10);
+		  }
+	     FileUtil.writeString(sourcePath+"/"+name+".html", content, encoding); 
+	     FileUtil.writeString(resultPath+"/"+name+".html", result.getOutput(), encoding);
+	    }
 	}
 
 	public String getKey() {

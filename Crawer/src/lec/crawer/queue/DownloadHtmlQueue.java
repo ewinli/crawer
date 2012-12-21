@@ -4,10 +4,10 @@ package lec.crawer.queue;
 
 import lec.crawer.model.UrlItem;
 
-public class DownloadQueue {
+public class DownloadHtmlQueue {
 	
-     private static IQueue<UrlItem> waitingQueue=QueueFactory.getInstance(UrlItem.class,"crawer/download/waiting");
-     private static IQueue<UrlItem> visitedQueue=QueueFactory.getInstance(UrlItem.class,"crawer/download/visited");
+     private static IQueue<UrlItem> waitingQueue=QueueFactory.getInstance(UrlItem.class,"crawer/download/html/waiting");
+     private static IQueue<UrlItem> visitedQueue=QueueFactory.getInstance(UrlItem.class,"crawer/download/html/visited");
  
      public synchronized static void enQueue(UrlItem item){
     	 if(!waitingQueue.contains(item)&&!visitedQueue.contains(item))
@@ -17,9 +17,7 @@ public class DownloadQueue {
      public synchronized static UrlItem getHead(){
     	return  waitingQueue.getFirst();
      }
-     
- 
-     
+          
      public synchronized static UrlItem deQueue(){
     	 return waitingQueue.removeFirst();
      }

@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.slf4j.LoggerFactory;
+
 import lec.crawer.model.UrlItem;
-import lec.crawer.queue.DownloadQueue;
+import lec.crawer.queue.DownloadHtmlQueue;
 import lec.crawer.worker.DownloadWorker;
 
 import cn.uc.lec.cache.CacheOperator;
@@ -13,9 +15,14 @@ import cn.uc.lec.cache.CacheOperator;
 public class Crawer {
     public static void main(String[] args) {
 		try {
-			DownloadManager.setSavePath("D:\\crawer\\dwonload\\");
+			
+			DownloadManager.setSource("D:\\crawer\\dwonload\\");
+			DownloadManager.setResultPath("D:\\crawer\\result\\");
 			CacheOperator.initCache(new String[]{"127.0.0.1:11211"});
-			DownloadQueue.enQueue(new UrlItem("http://www.cnbeta.com"));
+		//	DownloadHtmlQueue.enQueue(new UrlItem("http://www.acfun.tv/a/ac503499"));
+		//	DownloadHtmlQueue.enQueue(new UrlItem("http://www.cnbeta.com"));
+		//	DownloadHtmlQueue.enQueue(new UrlItem("http://www.oschina.net"));
+			DownloadHtmlQueue.enQueue(new UrlItem("http://news.qq.com/a/20121221/000111.htm"));
 			ExecutorService pool = Executors.newFixedThreadPool(20);
 			for(int i=0;i<20;i++){
 				pool.execute(new DownloadWorker());
