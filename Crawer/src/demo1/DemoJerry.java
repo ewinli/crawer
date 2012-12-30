@@ -29,7 +29,7 @@ public class DemoJerry {
 	  JerryParser jerryParser=Jerry.jerry();
 	  jerryParser.getDOMBuilder().setIgnoreComments(true);
 	  try {
-		HttpTransfer request=Http.createRequest("GET", "http://www.cnbeta.com");
+		HttpTransfer request=Http.createRequest("GET", "http://news.163.com/12/1228/08/8JQ37HLJ00014JB6.html");
 	    
 		Socket socket=new Socket(request.getHost(),request.getPort());
 		OutputStream outputStream=socket.getOutputStream();
@@ -37,7 +37,7 @@ public class DemoJerry {
 		InputStream inputStream=socket.getInputStream();	     
 		 HttpTransfer getRequest= Http.readResponse(inputStream);	
 
-		 String content= new String(getRequest.getBody(),"utf-8");
+		 String content= new String(getRequest.getBody(),"gbk");
 		 socket.close();
          Jerry jerry= jerryParser.parse(content);
          Jerry jerry2= jerry.$("meta");

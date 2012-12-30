@@ -19,15 +19,13 @@ public class Crawer {
 			DownloadManager.setSource("D:\\crawer\\dwonload\\");
 			DownloadManager.setResultPath("D:\\crawer\\result\\");
 			CacheOperator.initCache(new String[]{"127.0.0.1:11211"});
-		//	DownloadHtmlQueue.enQueue(new UrlItem("http://www.acfun.tv/a/ac503499"));
-		//	DownloadHtmlQueue.enQueue(new UrlItem("http://www.cnbeta.com"));
-		//	DownloadHtmlQueue.enQueue(new UrlItem("http://www.oschina.net"));
-			DownloadHtmlQueue.enQueue(new UrlItem("http://news.qq.com/a/20121221/000111.htm"));
+			DownloadHtmlQueue.enQueue(new UrlItem("http://www.cnbeta.com/articles/219473.htm"));
+
 			ExecutorService pool = Executors.newFixedThreadPool(20);
 			for(int i=0;i<20;i++){
 				pool.execute(new DownloadWorker());
 			}
-			
+	
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

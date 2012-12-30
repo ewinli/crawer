@@ -1,73 +1,49 @@
-package lec.crawer.algo;
+package lec.crawer.algo.rdab.ext;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
-import cn.uc.lec.dom.NodeUtil;
 import jodd.jerry.Jerry;
 import jodd.jerry.Jerry.JerryParser;
 import jodd.lagarto.dom.Node;
 import jodd.lagarto.dom.Node.NodeType;
 import jodd.util.StringUtil;
-import lec.crawer.model.UrlItem;
-import lec.crawer.parse.IParseResult;
+import lec.crawer.algo.ChildNodesTraverser;
+import lec.crawer.algo.ElementsTraverser;
+import lec.crawer.algo.IAction;
+import lec.crawer.algo.ScoredElement;
+import lec.crawer.algo.rdab.ReadAbilityConfig;
+import lec.crawer.algo.rdab.ReadAbilityUtil;
+import cn.uc.lec.dom.NodeUtil;
 
-public class ReadAbility{
-
-    private final String content;
+@Ext(name="content",type=1)
+public class ParseContent implements IParseExt<String> {
 	
-    private final UrlItem currentUrl;
-	
-    private int relateUrlCount=3;
-    
 	private Map<Node, ScoredElement<Node>> elementsScore=new HashMap<Node,ScoredElement<Node>>();
-    
-    
+   
+	private Jerry document;
 	
-	public ReadAbility(String content,UrlItem url){
+	private static final ThreadLocal<ParseContent> holder=new ThreadLocal<ParseContent>();
+	
+	private ParseContent(Jerry document){
+         this.document=document;
+	}
 
-		this.content=content;
-		this.currentUrl=url;		
-	}
-	
-	public IParseResult getResult(){
-		IParseResult result=new ReadAbilityResult();
-		JerryParser jerryParser = Jerry.jerry();	
-		jerryParser.getDOMBuilder().setEnableConditionalComments(false);
-		jerryParser.getDOMBuilder().setIgnoreWhitespacesBetweenTags(true);
-		jerryParser.getDOMBuilder().setIgnoreComments(true);
-		Jerry document= jerryParser.parse(content);
-		prepareDocument(document);		
-		UrlItem nextPageUrl=findPageUrl(document,"next");
-		UrlItem provPageUrl=findPageUrl(document, "prov");
-		List<UrlItem> relateUrls=findPageUrls(document, "relate");
-		String title=findTitle(document);
-		String content=findContent(document);
-		result.setContent(content);
-		result.setNextPageUrl(nextPageUrl);
-		result.setTitle(title);
-		result.setProvPageUrl(provPageUrl);
-		result.setRelatePageUrls(relateUrls);
-		return result;
-	}
-	
-	/**
-	 * 整理整个文档，清除不需要的节点
-	 * */
-	private void prepareDocument(Jerry document){
-		String[] removeTags=new String[]{"meta","script","link","noscript","nav","iframe","br","style","font"};
-		for(String tag :removeTags){
-			document.$(tag).remove();
+	public static ParseContent getInstance(Jerry document) {
+		ParseContent parser =holder.get();
+		if (parser == null) {
+			parser = new ParseContent(document);
+			holder.set(parser);
 		}
-
+		parser.document = document;
+		return parser;
 	}
-	
-	
-	private String findContent(Jerry document){
+
+
+
+	public String parse() {
 		String content="";
 		stripUnlikelyCandidates(document);
 	
@@ -84,6 +60,8 @@ public class ReadAbility{
 		content=prepareContent(content);
 		return content;
 	}
+	
+
 	
 	/**
 	 * 整理内容，清除不需要的节点
@@ -170,7 +148,10 @@ public class ReadAbility{
 				remove=true;
 			}else if(href.startsWith("javascript")){
 				remove=true;
-			}else{
+			}else if(href.startsWith("#")){
+				remove=true;
+			}
+			else{
 			  Node[] children=alink.getChildNodes();
 			  if(children!=null&&children.length>0){
 				for(Node child :children){
@@ -231,7 +212,7 @@ public class ReadAbility{
 			  Node[] ens=jnode.$("embed").get();
 			  if(ens!=null&&ens.length>0){
 				  for(Node en :ens){
-				    if(match(ReadAbilityConfig.getVideoRegex(),en.getAttribute("src"))){
+				    if(ReadAbilityUtil.match(ReadAbilityConfig.getVideoRegex(),en.getAttribute("src"))){
 				    	embedsCount++;
 				    }
 			     }
@@ -267,19 +248,19 @@ public class ReadAbility{
 		int weight=0;
 		String nodeCls=node.getAttribute("class");
 		if(!StringUtil.isEmpty(nodeCls)){
-			if(match(ReadAbilityConfig.getNegativeWeightRegex(),nodeCls)){
+			if(ReadAbilityUtil.match(ReadAbilityConfig.getNegativeWeightRegex(),nodeCls)){
 				weight-=25;
 			}
-			if(match(ReadAbilityConfig.getPositiveWeightRegex(),nodeCls)){
+			if(ReadAbilityUtil.match(ReadAbilityConfig.getPositiveWeightRegex(),nodeCls)){
 				weight+=25;
 			}
 		}
 		String nodeId=node.getAttribute("id");
 		if(!StringUtil.isEmpty(nodeId)){
-			if(match(ReadAbilityConfig.getNegativeWeightRegex(),nodeId)){
+			if(ReadAbilityUtil.match(ReadAbilityConfig.getNegativeWeightRegex(),nodeId)){
 				weight-=25;
 			}
-			if(match(ReadAbilityConfig.getPositiveWeightRegex(),nodeId)){
+			if(ReadAbilityUtil.match(ReadAbilityConfig.getPositiveWeightRegex(),nodeId)){
 				weight+=25;
 			}
 		}
@@ -294,7 +275,7 @@ public class ReadAbility{
 			return false;
 		}
 		
-		if(match(ReadAbilityConfig.getLikelyParagraphDivRegex(),node.getAttribute("class"))){
+		if(ReadAbilityUtil.match(ReadAbilityConfig.getLikelyParagraphDivRegex(),node.getAttribute("class"))){
 			 // we'll consider divs only with certain classes as potential paragraph divs
 			return false;
 		}
@@ -315,8 +296,8 @@ public class ReadAbility{
 		 List<Node> listToRemove=new ArrayList<Node>();
 		 for(Node tag:tagNodes){
 			if(isEmbed
-			&&(match(ReadAbilityConfig.getVideoRegex(),tag.getTextContent()))
-			||match(ReadAbilityConfig.getVideoRegex(),NodeUtil.getAttributeString(tag))
+			&&(ReadAbilityUtil.match(ReadAbilityConfig.getVideoRegex(),tag.getTextContent()))
+			||ReadAbilityUtil.match(ReadAbilityConfig.getVideoRegex(),NodeUtil.getAttributeString(tag))
 			)
 			{
 				continue;
@@ -384,8 +365,8 @@ public class ReadAbility{
 					String unLikeMatchString=node.getAttribute("id")+" "+node.getAttribute("class");
 					if(!"body".equalsIgnoreCase(nodeName)
 						&&!"a".equalsIgnoreCase(nodeName)
-						&&match(ReadAbilityConfig.getUnlikelyCandidatesRegex(), unLikeMatchString)
-						&&!match(ReadAbilityConfig.getOkMaybeItsACandidateRegex(), unLikeMatchString)){
+						&&ReadAbilityUtil.match(ReadAbilityConfig.getUnlikelyCandidatesRegex(), unLikeMatchString)
+						&&!ReadAbilityUtil.match(ReadAbilityConfig.getOkMaybeItsACandidateRegex(), unLikeMatchString)){
 						Node parent= node.getParentNode();
 						if(parent!=null){
 						  	parent.removeChild(node);
@@ -398,7 +379,7 @@ public class ReadAbility{
 				 *  elements into p's or replace text nodes within 
 				 *  the div with p's. */
 				if("div".equalsIgnoreCase(nodeName)){
-					if(!match(ReadAbilityConfig.getDivToPElementsRegex(),node.getInnerHtml())){
+					if(!ReadAbilityUtil.match(ReadAbilityConfig.getDivToPElementsRegex(),node.getInnerHtml())){
 					      // no block elements inside - change to p 					
 						NodeUtil.setNodeName(node,"p");
 					}
@@ -509,312 +490,6 @@ public class ReadAbility{
 		
 		return result;
 	}
-	
-	/**
-	 * 移除标题后面的网站信息
-	 * */
-	private String removeTitleSite(String siteSplit,String documentTitle){
-
-		if(documentTitle.indexOf("_")!=-1){
-			 String[] titles=documentTitle.split("_");
-			 String selectTitle=titles[0];
-			 for(String title:titles){
-				 if(selectTitle.length()<title.length()){
-					 selectTitle=title;
-				 }
-			 }
-			 documentTitle=selectTitle;
-		}
-		return documentTitle;
-	}
-	
-	/**
-	 * 查找标题
-	 * */
-	private String findTitle(Jerry document){
-		String currentTitle=null;
-		//文档标题
-		String documentTitle=document.$("title").text();
-		documentTitle=removeTitleSite("_", documentTitle);		
-		Map<String,ScoredElement<String>> possibTitles=new HashMap<String, ScoredElement<String>>();
-		ScoredElement<String> documentTitleScore= new ScoredElement<String>(50, documentTitle);
-
-		if(documentTitle.length()<ReadAbilityConfig.getMaxTitleLength()
-				&&documentTitle.length()>ReadAbilityConfig.getMinTitleLength()){
-		  documentTitleScore.score+=documentTitle.length();
-		}
-
-		possibTitles.put(documentTitle,documentTitleScore);
-		
-		//h1标题		
-		Jerry h1=document.$("h1");
-		Node[] h1nodes= h1.get();
-		addPossibleTitle(h1nodes,45,possibTitles);
-		
-		//h2标题		
-		Jerry h2=document.$("h2");
-		Node[] h2nodes= h2.get();
-		addPossibleTitle(h2nodes,40,possibTitles);
-		
-
-		
-		ScoredElement<String> top=new ScoredElement<String>(0, null);
-		
-		currentTitle=top.getTopElement(possibTitles.values());
-
-		return currentTitle;
-	}
-	
-	/**
-	 * 查找可能的标题
-	 * */	
-	private void addPossibleTitle(Node[] nodes,int baseScore,Map<String,ScoredElement<String>> possibTitles){
-		
-		for(Node node:nodes){
-		  	String idcls=node.getAttribute("id")+" "+node.getAttribute("class");
-		  	String tcontent=node.getTextContent();
-	  		ScoredElement<String> score=new ScoredElement<String>(baseScore, tcontent);
-		  	if(match(ReadAbilityConfig.getArticleTitleRegex(), idcls)
-		  			&&tcontent.length()<ReadAbilityConfig.getMaxTitleLength()
-		  			&&tcontent.length()>ReadAbilityConfig.getMinTitleLength()
-		  			)
-		  	{
-		  		score.score+=(tcontent.length()*(baseScore/50));
-		  	}
-
-		  	possibTitles.put(tcontent,score);
-		}		
-	}
-		
-	/**
-	 * 查找页面url
-	 * */
-	private UrlItem findPageUrl(Jerry document,String type){
-		 UrlItem nextPageUrl=null;
-		 Node[] allLink=document.$("a").get();
-		if(allLink==null||allLink.length==0){
-			 return nextPageUrl;
-		 }
-		Map<String,ScoredElement<UrlItem>> possibleLinks=getPossiblePageUrls(allLink,type);
-		 nextPageUrl=new ScoredElement<UrlItem>(0,nextPageUrl).getTopElement(possibleLinks.values(),0);
-		 if(nextPageUrl==null){
-			 nextPageUrl=new UrlItem("");
-		 }
-		 return nextPageUrl;
-	}
-
-	/**
-	 * 查找页面url列表
-	 * */
-	private List<UrlItem> findPageUrls(Jerry document, String type) {
-		List<UrlItem> result = new ArrayList<UrlItem>();
-		Node[] allLink = document.$("a").get();
-		if (allLink == null || allLink.length == 0) {
-			return result;
-		}
-		Map<String, ScoredElement<UrlItem>> possibleLinks = getPossiblePageUrls(
-				allLink, type);
-		result = new ScoredElement<UrlItem>(0, null).getTopElements(
-				possibleLinks.values(), ReadAbilityConfig.getMinReleateScore(),
-				relateUrlCount);
-		return result;
-	}
-	
-	private   Map<String,ScoredElement<UrlItem>> getPossiblePageUrls( Node[] allLink,String type){
-		 Map<String,ScoredElement<UrlItem>> possibleLinks=new HashMap<String,ScoredElement<UrlItem>>();
-
-		 for(Node link : allLink){
-
-			 String href=link.getAttribute("href");
-		     if(StringUtil.isEmpty(href)){
-		    	 continue;
-		     }
-		     href=href.replaceAll("#.*$", "");
-		     href=href.replaceAll("/$", "");		
-             href=getAbsouluteUrl(href);
-             if(currentUrl.getUrl().equals(href)){
-            	continue;
-             }    
-             String base="://"+currentUrl.getUri().getHost();
-             if(href.indexOf(base)==-1){
-            	 continue;
-             }             
-            
-             int score=getPageUrlScore(href, link, type);
-			 UrlItem url=new UrlItem(href);
-			 ScoredElement<UrlItem> element=new ScoredElement<UrlItem>(score,url);
-			 possibleLinks.put(url.getKey(),element);
-		 }
-		 return possibleLinks;
-	}
-	
-    private static Map<String,Pattern> pageTypePattern=new HashMap<String, Pattern>();
-    static{
-	 pageTypePattern.put("nextLink", ReadAbilityConfig.getNextLink());
-	 pageTypePattern.put("nextText", ReadAbilityConfig.getNextText());
-	 pageTypePattern.put("provText", ReadAbilityConfig.getPrevText());
-	 pageTypePattern.put("provLink", ReadAbilityConfig.getPrevLink());
-	 pageTypePattern.put("relateLink", ReadAbilityConfig.getNextStoryLink());
-	 pageTypePattern.put("relatePositive", ReadAbilityConfig.getPositiveWeightRegex());
-	 pageTypePattern.put("relateText", ReadAbilityConfig.getRelateText());
-    }
-	
-	private int getPageUrlScore(String href, Node link, String type) {
-
-		if("next".equals(type)||"prov".equals(type)) return getNextOrProvPageScore(href, link, type);
-		return getPossiblePageScore(href, link, type);
-	}
-	
-	private int getPossiblePageScore(String href, Node link, String type) {
-		int score = 0;
-
-		if (match(pageTypePattern.get(type + "Link"), href)) {
-				score +=5;
-		}
-		
-		if(match(pageTypePattern.get(type+"Positive"),href)){
-			   score+=5;
-		}
-		String path=currentUrl.getUri().getPath();
-		UrlItem hrefItem=new UrlItem(href);
-		String hrefPath=hrefItem.getUri().getPath();
-
-		if(!StringUtil.isEmpty(path)&&!StringUtil.isEmpty(hrefPath)&&path.indexOf("/")!=-1&&hrefPath.indexOf("/")!=-1){
-			String[] paths= path.split("/");
-			String[] hrefPaths=hrefPath.split("/");
-			int count=Math.min(paths.length, hrefPaths.length);
-			for(int i=0;i<count;i++){
-				if(paths[i].equals(hrefPaths[i])&&!StringUtil.isEmpty(hrefPaths[i])){
-					score+=10;
-				}
-				if(paths[i].length()==hrefPaths[i].length()){
-					score+=5;
-				}
-			}
-			
-		}
-        
-		if (link.getTextContent() == null) {
-			score -= 50;
-		}
-
-		return score;
-	}
-	
-	private int getNextOrProvPageScore(String href, Node link, String type){
-		int score = 0;
-		String[] types=new String[]{"next","prov"};
-
-		for (String pageType : types) {
-			if (match(pageTypePattern.get(pageType + "Link"), href)) {
-				if(pageType.equals(type))
-				  score += 25;
-				else
-				  score-=25;
-			//	System.out.println(link.getTextContent()+"[1] "+score);
-			}
-
-			if (link.getTextContent() == null) {
-				score -= 50;
-			}
-			if (match(pageTypePattern.get(pageType + "Text"),
-					link.getTextContent())) {
-				if(pageType.equals(type))
-					  score +=50;
-					else
-					  score-=50;
-				//System.out.println(link.getTextContent()+"[2] "+score);
-			} 
-			
-			Node parent = link.getParentNode();
-			if (parent != null&&parent.getChildElementsCount()==1) {
-				if (match(pageTypePattern.get(pageType + "Text"),
-						parent.getTextContent())) {
-					if(pageType.equals(type))
-						  score +=50;
-						else
-						  score-=50;
-				} 		
-			}
-		}
-		//System.out.println(link.getTextContent()+" "+score);
-		return score;
-	}
-	
-	
-	
-	/**
-	 * 匹配字符串
-	 * */
-	private boolean match(Pattern pattern,String str){
-		if(StringUtil.isEmpty(str)||pattern==null) return false;
-		return pattern.matcher(str).find();
-	}
-	
-	/**
-	 * 返回当前路径的绝对路径
-	 * */
-	private String getAbsouluteUrl(String url){
-		String host = currentUrl.getUri().getHost();
-		int port = currentUrl.getUri().getPort();
-		String path=currentUrl.getUri().getPath();
-		String protocol=currentUrl.getUri().getScheme();
-        StringBuilder sb=new StringBuilder();
-        if(StringUtil.isEmpty(url)){
-        	return currentUrl.getUrl();
-        }
-        if(url.toLowerCase().startsWith("javascript")){
-        	return "";
-        }
-        else if(url.indexOf("http://")!=-1||url.indexOf("https://")!=-1){
-		   return url;
-	     }else if(url.startsWith("/")){
-			sb.append(protocol);
-			sb.append("://");
-			sb.append(host);
-			if(port!=-1){
-				sb.append(port);
-			}
-			sb.append(url);
-		    return sb.toString();	
-		 }
-	     else{
-			String[] basePath=path.split("/");
-			String[] toPath=url.split("/");
-			sb.append(protocol);
-			sb.append("://");
-			sb.append(host);
-			if(port!=-1){
-				sb.append(port);
-			}
-			for(int i=0;i<basePath.length;i++){
-				if(i<toPath.length){
-					if(basePath[i]!=toPath[i]){
-						sb.append("/").append(basePath[i]);
-					}else{
-						sb.append("/");
-						break;
-					}
-				}
-			}
-			sb.append(url);
-			return sb.toString();
-		 }
-
-	}
-
-	public int getRelateUrlCount() {
-		return relateUrlCount;
-	}
-
-	public void setRelateUrlCount(int relateUrlCount) {
-		this.relateUrlCount = relateUrlCount;
-	}
 
 
-	
-
-	
-	
-	
 }

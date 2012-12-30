@@ -1,4 +1,4 @@
-package lec.crawer.algo;
+package lec.crawer.algo.rdab;
 
 import java.util.List;
 
@@ -18,63 +18,43 @@ public class ReadAbilityResult implements IParseResult {
     List<UrlItem> relatePageUrls;
     
 
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#getNextPageUrl()
-	 */
+
 	public UrlItem getNextPageUrl() {
 		return nextPageUrl;
 	}
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#setNextPageUrl(lec.crawer.model.UrlItem)
-	 */
+
 	public void setNextPageUrl(UrlItem nextPageUrl) {
 		this.nextPageUrl = nextPageUrl;
 	}
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#getProvPageUrl()
-	 */
+
 	public UrlItem getProvPageUrl() {
 		return provPageUrl;
 	}
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#setProvPageUrl(lec.crawer.model.UrlItem)
-	 */
+
 	public void setProvPageUrl(UrlItem provPageUrl) {
 		this.provPageUrl = provPageUrl;
 	}
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#getRelatePageUrls()
-	 */
+
 	public List<UrlItem> getRelatePageUrls() {
 		return relatePageUrls;
 	}
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#setRelatePageUrls(java.util.List)
-	 */
+
 	public void setRelatePageUrls(List<UrlItem> relatePageUrls) {
 		this.relatePageUrls = relatePageUrls;
 	}
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#getContent()
-	 */
+
 	public String getContent() {
 		return content;
 	}
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#setContent(java.lang.String)
-	 */
+
 	public void setContent(String content) {
 		this.content = content;
 	}
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#getTitle()
-	 */
+
 	public String getTitle() {
 		return title;
 	}
-	/* (non-Javadoc)
-	 * @see lec.crawer.algo.IParseResult#setTitle(java.lang.String)
-	 */
+
 	public void setTitle(String title) {
 		this.title = title;
 	}

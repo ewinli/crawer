@@ -7,7 +7,7 @@ import java.util.List;
 import jodd.http.HttpTransfer;
 import jodd.util.StringUtil;
 
-import lec.crawer.algo.ReadAbility;
+import lec.crawer.algo.rdab.ReadAbility;
 import lec.crawer.model.UrlItem;
 
 public class SmartHtmlParser extends BaseHtmlParser{
@@ -31,12 +31,12 @@ public class SmartHtmlParser extends BaseHtmlParser{
 		 if(result.getNextPageUrl()!=null&&!StringUtil.isEmpty(result.getNextPageUrl().getUrl())){
 			 urlist.add(result.getNextPageUrl());
 		 }
-		/* List<UrlItem> relateList=result.getRelatePageUrls();
+		List<UrlItem> relateList=result.getRelatePageUrls();
 		 if(relateList!=null){
 			 for(UrlItem item:relateList){
 				 urlist.add(item);
 			 }
-		 }*/
+		 }
 		 return urlist;
 	}
 

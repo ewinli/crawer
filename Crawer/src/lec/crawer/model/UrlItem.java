@@ -8,11 +8,9 @@ public class UrlItem implements IItem {
 	private String url;
 	private URI uri;
 
-    
-    
 	public UrlItem(String url){
-		this.url=url;
-		this.uri=URI.create(url);
+		this.url=url.trim();
+		this.uri=URI.create(this.url);
 	}
 	
 	public String getUrl() {

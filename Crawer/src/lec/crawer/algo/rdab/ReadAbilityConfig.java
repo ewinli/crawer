@@ -1,4 +1,4 @@
-package lec.crawer.algo;
+package lec.crawer.algo.rdab;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ public class ReadAbilityConfig {
 		styleClass.put("text", "reability_text");
 	}
 	
-	private static int minReleateScore=10;
+	private static int minReleateScore=80;
 	
 	private static int minTitleLength = 4;
 

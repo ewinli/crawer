@@ -24,7 +24,7 @@ public class DemoHttpClient {
 	
   public static void main(String args[]){
 	  HttpClient client=new DefaultHttpClient();
-	  HttpGet get=new HttpGet("http://www.baidu.com");
+	  HttpGet get=new HttpGet("http://news.163.com/12/1228/08/8JQ37HLJ00014JB6.html");
      try {
 		HttpResponse response= client.execute(get);
 	    HttpEntity entity=response.getEntity();

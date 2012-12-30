@@ -18,7 +18,7 @@ import jodd.lagarto.dom.Node;
 import jodd.util.StringUtil;
 import lec.crawer.algo.ElementsTraverser;
 import lec.crawer.algo.IAction;
-import lec.crawer.algo.ReadAbilityConfig;
+import lec.crawer.algo.rdab.ReadAbilityConfig;
 import lec.crawer.model.UrlItem;
 
 public class DemoParser {

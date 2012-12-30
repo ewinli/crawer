@@ -1,5 +1,6 @@
 package lec.crawer.model;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -85,19 +86,32 @@ public class HtmlItem implements IItem {
 	}
 	
 	
-	public void Save(String sourcePath,String resultPath) throws IOException{
+	public  void Save(String sourcePath,String resultPath) throws IOException{
 		IParseResult result=parser.parse();
 		if(result!=null){
-		 String name= URLCoder.encodePath( result.getTitle());	
-		  name=name.replace("/","");
+		 String name=result.getTitle().trim();
+				name=URLCoder.encodePath( result.getTitle());	
+	      
 		  if(name.length()>10){
 			  name=name.substring(0,10);
 		  }
-	     FileUtil.writeString(sourcePath+"/"+name+".html", content, encoding); 
-	     FileUtil.writeString(resultPath+"/"+name+".html", result.getOutput(), encoding);
+		 name= name.replaceAll("\\|\\W+|\\/|:|\\.|\"|\\*|\\?|<|>|\\|","");
+		 
+		 String host= urlItem.getUri().getHost();
+		 String src=sourcePath+"/"+host;
+	     DownloadManager.mkdirs(src);
+		 String res=resultPath+"/"+host;
+		 DownloadManager.mkdirs(res);	 
+         System.out.println("save:"+name);
+	     FileUtil.writeString(src+"/"+name+".html", content, encoding); 
+	     FileUtil.writeString(res+"/"+name+".html", result.getOutput(), encoding);
+	     FileUtil.appendString(res+"/title_"+encoding+".txt", result.getOutput().length()+":"+result.getTitle()+"\r\n",encoding );
+
 	    }
 	}
 
+
+	
 	public String getKey() {
 		return "html/"+this.urlItem.getKey();
 	}

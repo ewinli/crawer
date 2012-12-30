@@ -29,6 +29,7 @@ public abstract class BaseHtmlParser implements IHtmlParser{
 		jerryParser.getDOMBuilder().setEnableConditionalComments(true);
 		jerryParser.getDOMBuilder().setIgnoreComments(true);
 		this.encoding = this.getEncoding();
+		System.out.println(response.getBody());
 		jerry = jerryParser.parse(new String(response.getBody(),this.encoding));
 		this.contentType = this.getContentType();
 		this.content = this.getContent();
