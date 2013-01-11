@@ -1,6 +1,7 @@
 package lec.crawer.parse;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -34,7 +35,12 @@ public class CnbetaHtmlParser extends BaseHtmlParser {
 			}
 			Matcher matcher= urlPattern.matcher(href);
 			if(matcher.matches()&&href.startsWith("http://")){
-			  list.add(new UrlItem(href));
+			  try {
+				list.add(new UrlItem(href));
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			}
 		}
 

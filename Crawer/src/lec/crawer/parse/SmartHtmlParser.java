@@ -1,6 +1,7 @@
 package lec.crawer.parse;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +9,7 @@ import jodd.http.HttpTransfer;
 import jodd.util.StringUtil;
 
 import lec.crawer.algo.rdab.ReadAbility;
+import lec.crawer.model.HtmlItem;
 import lec.crawer.model.UrlItem;
 
 public class SmartHtmlParser extends BaseHtmlParser{
@@ -15,6 +17,11 @@ public class SmartHtmlParser extends BaseHtmlParser{
 	public ReadAbility readAbility;
 	
 	public IParseResult result;
+	
+	public SmartHtmlParser(HtmlItem item) throws UnsupportedEncodingException{
+		super(item);
+		readAbility=new ReadAbility(this.getContent(), item.getUrlItem());
+	}
 	
 	public SmartHtmlParser(HttpTransfer response, UrlItem item)
 			throws UnsupportedEncodingException {
@@ -24,19 +31,7 @@ public class SmartHtmlParser extends BaseHtmlParser{
 	}
 
 	public List<UrlItem> getHtmlUrlList() {
-		 if(result==null){
-			 parse();
-		 }
 		 List<UrlItem> urlist=new ArrayList<UrlItem>();
-		 if(result.getNextPageUrl()!=null&&!StringUtil.isEmpty(result.getNextPageUrl().getUrl())){
-			 urlist.add(result.getNextPageUrl());
-		 }
-		List<UrlItem> relateList=result.getRelatePageUrls();
-		 if(relateList!=null){
-			 for(UrlItem item:relateList){
-				 urlist.add(item);
-			 }
-		 }
 		 return urlist;
 	}
 
@@ -44,7 +39,7 @@ public class SmartHtmlParser extends BaseHtmlParser{
 		return null;
 	}
 
-	public IParseResult parse() {
+	public IParseResult parse() throws MalformedURLException {
 		if(result==null)
 		   result=readAbility.getResult();
 		return result;

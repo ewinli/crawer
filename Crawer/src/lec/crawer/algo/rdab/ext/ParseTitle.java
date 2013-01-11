@@ -81,11 +81,11 @@ public class ParseTitle implements IParseExt<String> {
 		lastSiteTitle.put(host, documentTitle);
 		documentTitle=removeTitleSite("_", documentTitle,lastTitle);		
 		Map<String,ScoredElement<String>> possibTitles=new HashMap<String, ScoredElement<String>>();
-		ScoredElement<String> documentTitleScore= new ScoredElement<String>(50, documentTitle);
+		ScoredElement<String> documentTitleScore= new ScoredElement<String>(40, documentTitle);
 
 		if(documentTitle.length()<ReadAbilityConfig.getMaxTitleLength()
 				&&documentTitle.length()>ReadAbilityConfig.getMinTitleLength()){
-		  documentTitleScore.score+=documentTitle.length();
+		  documentTitleScore.score+=documentTitle.length()*0.8;
 		}
 
 		possibTitles.put(documentTitle,documentTitleScore);
@@ -93,13 +93,17 @@ public class ParseTitle implements IParseExt<String> {
 		//h1标题		
 		Jerry h1=document.$("h1");
 		Node[] h1nodes= h1.get();
-		addPossibleTitle(h1nodes,45,possibTitles);
+		addPossibleTitle(h1nodes,45,documentTitle.length(),possibTitles);
 		
 		//h2标题		
 		Jerry h2=document.$("h2");
 		Node[] h2nodes= h2.get();
-		addPossibleTitle(h2nodes,40,possibTitles);
+		addPossibleTitle(h2nodes,40,documentTitle.length(),possibTitles);
 		
+		//h3标题		
+		Jerry h3=document.$("h3");
+		Node[] h3nodes= h3.get();
+		addPossibleTitle(h3nodes,35,documentTitle.length(),possibTitles);
 
 		
 		ScoredElement<String> top=new ScoredElement<String>(0, null);
@@ -112,7 +116,7 @@ public class ParseTitle implements IParseExt<String> {
 	/**
 	 * 查找可能的标题
 	 * */	
-	private void addPossibleTitle(Node[] nodes,int baseScore,Map<String,ScoredElement<String>> possibTitles){
+	private void addPossibleTitle(Node[] nodes,int baseScore,int baseLength,Map<String,ScoredElement<String>> possibTitles){
 		
 		for(Node node:nodes){
 		  	String idcls=node.getAttribute("id")+" "+node.getAttribute("class");
@@ -122,8 +126,8 @@ public class ParseTitle implements IParseExt<String> {
 		  			&&tcontent.length()<ReadAbilityConfig.getMaxTitleLength()
 		  			&&tcontent.length()>ReadAbilityConfig.getMinTitleLength()
 		  			)
-		  	{
-		  		score.score+=(tcontent.length()*(baseScore/50));
+		  	{		  		
+		  		score.score+=(tcontent.length()*(baseScore/50))+(baseLength-tcontent.length());
 		  	}
 
 		  	possibTitles.put(tcontent,score);

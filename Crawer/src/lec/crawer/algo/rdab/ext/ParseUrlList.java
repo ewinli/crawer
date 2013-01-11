@@ -1,5 +1,6 @@
 package lec.crawer.algo.rdab.ext;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +47,9 @@ public class ParseUrlList implements IParseExt<List<UrlItem>> {
 	 
 	/**
 	 * 查找页面url列表
+	 * @throws MalformedURLException 
 	 * */
-	public List<UrlItem> parse() {
+	public List<UrlItem> parse() throws MalformedURLException {
 		List<UrlItem> result = new ArrayList<UrlItem>();
 		Node[] allLink = document.$("a").get();
 		if (allLink == null || allLink.length == 0) {

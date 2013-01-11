@@ -1,5 +1,6 @@
 package lec.crawer.algo.rdab;
 
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +21,7 @@ import lec.crawer.algo.IAction;
 import lec.crawer.algo.ScoredElement;
 import lec.crawer.algo.UrlClassifier;
 import lec.crawer.algo.rdab.ext.*;
+import lec.crawer.model.ImageItem;
 import lec.crawer.model.UrlItem;
 import lec.crawer.parse.IParseResult;
 
@@ -37,8 +39,8 @@ public class ReadAbility{
 		this.currentUrl=url;		
 	}
 	
-	public IParseResult getResult(){
-		IParseResult result=new ReadAbilityResult();
+	public IParseResult getResult() throws MalformedURLException{
+		ReadAbilityResult result=new ReadAbilityResult(currentUrl);
 		JerryParser jerryParser = Jerry.jerry();	
 		jerryParser.getDOMBuilder().setEnableConditionalComments(false);
 		jerryParser.getDOMBuilder().setIgnoreWhitespacesBetweenTags(true);
@@ -53,6 +55,8 @@ public class ReadAbility{
 		
 		List<UrlItem> relateUrls=ParseUrlList.getInstance(document, currentUrl,"relate").parse();
 		
+		List<ImageItem> imageList=ParseImageList.getInstance(document, currentUrl).parse();
+		
 		String title=ParseTitle.getInstance(document,currentUrl).parse();	
 		
 		String content=ParseContent.getInstance(document).parse();
@@ -62,7 +66,7 @@ public class ReadAbility{
 		result.setTitle(title);
 		result.setProvPageUrl(provPageUrl);
 		result.setRelatePageUrls(relateUrls);
-		
+		result.setImageList(imageList);
 		
 		return result;
 	}
@@ -72,21 +76,13 @@ public class ReadAbility{
 	 * */
 	public void prepareDocument(Jerry document){
 		String[] removeTags=new String[]{"meta","script","link","noscript"
-				,"nav","iframe","br","style","font","textarea"};
+				,"nav","iframe","br","style","font","textarea","form"};
 		for(String tag :removeTags){
 			document.$(tag).remove();
 		}
 
 	}
 
-		
-
-	
-	
-	
-	
-
-	
 
 	public int getRelateUrlCount() {
 		return relateUrlCount;

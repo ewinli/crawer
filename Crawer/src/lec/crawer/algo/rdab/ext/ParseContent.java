@@ -151,17 +151,7 @@ public class ParseContent implements IParseExt<String> {
 			}else if(href.startsWith("#")){
 				remove=true;
 			}
-			else{
-			  Node[] children=alink.getChildNodes();
-			  if(children!=null&&children.length>0){
-				for(Node child :children){
-					if("img".equalsIgnoreCase(child.getNodeName())){
-						remove=true;
-						break;
-					}
-				 }
-			  }
-			}
+			
 			if(parent!=null&&remove)
 			   parent.removeChild(alink);
 		}
@@ -321,10 +311,12 @@ public class ParseContent implements IParseExt<String> {
 
 		}
 		if(determineNode==null||"body".equalsIgnoreCase(determineNode.element.getNodeName())){
-			 Jerry jbody=document.$("body");
+			 Jerry jbody=document.$("body"); 
+			 if(jbody.get()!=null&&jbody.get().length>0){
 			 Node node=jbody.get(0);
 			 node=NodeUtil.createNodeFrom(node, "div");
 			 determineNode=new ScoredElement<Node>(0, node);
+			 }
 		}
 		
 
@@ -357,6 +349,7 @@ public class ParseContent implements IParseExt<String> {
 	 * */
 	private void stripUnlikelyCandidates(Jerry document){
 		Jerry body=document.$("body");
+		if(body.get()!=null&&body.get().length>0){
 		new ElementsTraverser(new IAction<Node>() {			
 			public Object doAction(Node node) {				
 				String nodeName=node.getNodeName();
@@ -406,6 +399,7 @@ public class ParseContent implements IParseExt<String> {
 			}
 			
 		}).traverse(body.get(0));
+		}
 	}
 	
 	/**

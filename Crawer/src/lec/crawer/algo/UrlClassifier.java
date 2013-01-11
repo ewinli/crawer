@@ -1,7 +1,9 @@
 package lec.crawer.algo;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,8 +29,8 @@ public class UrlClassifier {
 		return map;
 	}
 	
-	public static double getUrlSimScore(String currentUrl,String url) throws URISyntaxException{
-		return new UrlSim(new URI(currentUrl),new URI(url)).sim();
+	public static double getUrlSimScore(String currentUrl,String url) throws URISyntaxException, MalformedURLException{
+		return new UrlSim(new URL(currentUrl),new URL(url)).sim();
 				
 	}
 	
@@ -37,9 +39,9 @@ public class UrlClassifier {
 		public int length;
 		public int dics;
 		public int last;
-		public URI uri1;
-		public URI uri2;
-		public UrlSim(URI uri1,URI uri2){
+		public URL uri1;
+		public URL uri2;
+		public UrlSim(URL uri1,URL uri2){
 		  this.uri1=uri1;
 		  this.uri2=uri2;
 		  site=getSite();
@@ -62,10 +64,10 @@ public class UrlClassifier {
 		public int getSite() {
 			int score = 0;
 			String host1 = uri1.getHost();
-			String scheme1 = uri1.getScheme();
+			String scheme1 = uri1.getProtocol();
 
 			String host2 = uri2.getHost();
-			String scheme2 = uri2.getScheme();
+			String scheme2 = uri2.getProtocol();
 
 			if (scheme1.equals(scheme2)) {
 				score += 10;
@@ -203,8 +205,8 @@ public class UrlClassifier {
 		
 		public int getLength(){
 			double score=0;
-			String url1=uri1.getScheme()+"://"+uri1.getHost()+"/"+uri1.getPath();
-			String url2=uri2.getScheme()+"://"+uri2.getHost()+"/"+uri2.getPath();
+			String url1=uri1.getProtocol()+"://"+uri1.getHost()+"/"+uri1.getPath();
+			String url2=uri2.getProtocol()+"://"+uri2.getHost()+"/"+uri2.getPath();
 			
 			int differ=Math.abs( url1.length()-url2.length());
 			

@@ -61,7 +61,7 @@ public class ReadAbilityConfig {
 
 	private static Pattern unlikelyCandidatesRegex = Pattern
 			.compile(
-					"combx|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sidebar|side|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter",
+					"combx|hidden|reply|comment|community|disqus|extra|foot|header|menu|remark|rss|shoutbox|sidebar|side|sponsor|ad-break|agegate|pagination|pager|popup|tweet|twitter",
 					Pattern.CASE_INSENSITIVE);
 
 	private static Pattern okMaybeItsACandidateRegex = Pattern.compile(

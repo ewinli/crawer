@@ -1,30 +1,38 @@
 package lec.crawer.parse;
 
+import java.util.Date;
 import java.util.List;
 
+import lec.crawer.model.ImageItem;
 import lec.crawer.model.UrlItem;
 
 public interface IParseResult {
 
+	public UrlItem getCurrentPageUrl();
+	
 	public  UrlItem getNextPageUrl();
-
-	public  void setNextPageUrl(UrlItem nextPageUrl);
-
+	
 	public  UrlItem getProvPageUrl();
-
-	public  void setProvPageUrl(UrlItem provPageUrl);
-
+	
 	public  List<UrlItem> getRelatePageUrls();
 
-	public  void setRelatePageUrls(List<UrlItem> relatePageUrls);
-
+	public List<ImageItem> getImageList();
+	
+	public String getDescription();
+	
 	public  String getContent();
-
-	public  void setContent(String content);
 
 	public  String getTitle();
 
-	public  void setTitle(String title);
-
 	public String getOutput();
+	
+	public String getCleanContent();
+	
+	public Date getPublishedDate();
+	
+	public String getAuthor();
+	
+	public String getSource();
+	
+	
 }

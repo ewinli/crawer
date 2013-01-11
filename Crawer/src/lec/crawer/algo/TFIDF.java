@@ -75,7 +75,12 @@ public class TFIDF {
 		for(int i=0;i<result.length;i++){
 			for(int j=0;j<result[i].length;j++){	
 				double res=result[i][j];
-				result[i][j]=(res/rowSum[i])*Math.log(result.length/(colSum[j]+1));
+				if(wordMap.get(j).equals("大学生")){
+					System.out.println("d:"+(double)(result.length+1)/(double)(colSum[j]+1));
+					System.out.println("d2:"+Math.log((double)(result.length+1)/(double)(colSum[j]+1)));
+				}
+				
+				result[i][j]=(res/rowSum[i])*Math.log((double)(result.length+1)/(double)(colSum[j]+1));
 			}
 		}
 		
@@ -121,11 +126,11 @@ public class TFIDF {
 			}
 		}
 
-		return Math.log(documents.length/count+1);
+		return Math.log((double)(documents.length)/(double)(count+1));
 	}
 	
 	
-	
+
 	
 	
 	

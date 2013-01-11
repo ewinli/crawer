@@ -7,6 +7,7 @@ import jodd.jerry.Jerry;
 import jodd.jerry.Jerry.JerryParser;
 import jodd.lagarto.dom.Node;
 import jodd.util.StringUtil;
+import lec.crawer.model.HtmlItem;
 import lec.crawer.model.UrlItem;
 
 public abstract class BaseHtmlParser implements IHtmlParser{
@@ -19,6 +20,14 @@ public abstract class BaseHtmlParser implements IHtmlParser{
 
 	private UrlItem item;
 	private HttpTransfer response;
+	
+	public BaseHtmlParser(HtmlItem item){
+		this.encoding=item.getEncoding();
+		this.contentType=item.getContentType();
+		this.content=item.getContent();
+		this.item=item.getUrlItem();
+		this.baseUrl=this.getBaseUrl();
+	}
 	
 	public BaseHtmlParser(HttpTransfer response, UrlItem item)
 			throws UnsupportedEncodingException {
@@ -33,7 +42,7 @@ public abstract class BaseHtmlParser implements IHtmlParser{
 		jerry = jerryParser.parse(new String(response.getBody(),this.encoding));
 		this.contentType = this.getContentType();
 		this.content = this.getContent();
-		this.baseUrl = this.getBaseUrl();
+		this.baseUrl = this.getBaseUrl();		
 	}
 	
 	public String getContent() throws UnsupportedEncodingException {
@@ -52,7 +61,7 @@ public abstract class BaseHtmlParser implements IHtmlParser{
 		String host = item.getUri().getHost();
 		int port = item.getUri().getPort();
 		String path=item.getUri().getPath();
-		String protocol=item.getUri().getScheme();
+		String protocol=item.getUri().getProtocol();
 		StringBuilder sb=new StringBuilder();			
 		if(StringUtil.isEmpty(protocol)) protocol="http";
 		sb.append(protocol+"://").append(host);

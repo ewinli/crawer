@@ -1,5 +1,6 @@
 package lec.crawer.algo.rdab.ext;
 
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +10,7 @@ import jodd.jerry.Jerry;
 import jodd.lagarto.dom.Node;
 import jodd.util.StringUtil;
 
+import lec.crawer.Util;
 import lec.crawer.algo.ScoredElement;
 import lec.crawer.algo.UrlClassifier;
 import lec.crawer.algo.rdab.ReadAbilityConfig;
@@ -54,8 +56,9 @@ public class ParseUrl implements IParseExt<UrlItem> {
 	 
 	/**
 	 * 查找页面url
+	 * @throws MalformedURLException 
 	 * */
-	public UrlItem parse() {
+	public UrlItem parse() throws MalformedURLException  {
 		UrlItem nextPageUrl = null;
 		Node[] allLink = document.$("a").get();
 		if (allLink == null || allLink.length == 0) {
@@ -65,14 +68,12 @@ public class ParseUrl implements IParseExt<UrlItem> {
 				allLink, type);
 		nextPageUrl = new ScoredElement<UrlItem>(0, nextPageUrl).getTopElement(
 				possibleLinks.values(), 0);
-		if (nextPageUrl == null) {
-			nextPageUrl = new UrlItem("");
-		}
+
 		return nextPageUrl;
 	}
 
 	public Map<String, ScoredElement<UrlItem>> getPossiblePageUrls(
-			Node[] allLink, String type) {
+			Node[] allLink, String type) throws MalformedURLException {
 		Map<String, ScoredElement<UrlItem>> possibleLinks = new HashMap<String, ScoredElement<UrlItem>>();
 
 		for (Node link : allLink) {
@@ -83,7 +84,7 @@ public class ParseUrl implements IParseExt<UrlItem> {
 			}
 			href = href.replaceAll("#.*$", "");
 			href = href.replaceAll("/$", "");
-			href = getAbsouluteUrl(href);
+			href = Util.getAbsouluteUrl(href,currentUrl);
 			if (currentUrl.getUrl().equals(href)) {
 				continue;
 			}
@@ -143,56 +144,7 @@ public class ParseUrl implements IParseExt<UrlItem> {
 		return score;
 	}
 
-	/**
-	 * 返回当前路径的绝对路径
-	 * */
-	private String getAbsouluteUrl(String url) {
-		String host = currentUrl.getUri().getHost();
-		int port = currentUrl.getUri().getPort();
-		String path = currentUrl.getUri().getPath();
-		String protocol = currentUrl.getUri().getScheme();
-		StringBuilder sb = new StringBuilder();
-		if (StringUtil.isEmpty(url)) {
-			return currentUrl.getUrl();
-		}
-		if (url.toLowerCase().startsWith("javascript")) {
-			return "";
-		} else if (url.indexOf("http://") != -1
-				|| url.indexOf("https://") != -1) {
-			return url;
-		} else if (url.startsWith("/")) {
-			sb.append(protocol);
-			sb.append("://");
-			sb.append(host);
-			if (port != -1) {
-				sb.append(port);
-			}
-			sb.append(url);
-			return sb.toString();
-		} else {
-			String[] basePath = path.split("/");
-			String[] toPath = url.split("/");
-			sb.append(protocol);
-			sb.append("://");
-			sb.append(host);
-			if (port != -1) {
-				sb.append(port);
-			}
-			for (int i = 0; i < basePath.length; i++) {
-				if (i < toPath.length) {
-					if (basePath[i] != toPath[i]) {
-						sb.append("/").append(basePath[i]);
-					} else {
-						sb.append("/");
-						break;
-					}
-				}
-			}
-			sb.append(url);
-			return sb.toString();
-		}
 
-	}
 
 	private int getPageUrlScore(String href, Node link, String type) {
 
@@ -205,8 +157,13 @@ public class ParseUrl implements IParseExt<UrlItem> {
 		int score = 0;
 
 		try {
-			return (int) UrlClassifier
-					.getUrlSimScore(currentUrl.getUrl(), href);
+			try {
+				return (int) UrlClassifier
+						.getUrlSimScore(currentUrl.getUrl(), href);
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -12,18 +12,28 @@ import jodd.io.FileUtil;
 import jodd.util.StringUtil;
 import jodd.util.URLCoder;
 import lec.crawer.DownloadManager;
-import lec.crawer.ParserFactory;
+import lec.crawer.ParserManager;
 import lec.crawer.parse.IHtmlParser;
 import lec.crawer.parse.IParseResult;
-import lec.crawer.queue.DownloadHtmlQueue;
+
 
 public class HtmlItem implements IItem {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public static interface HtmlSaveHandler{
+		void save(HtmlItem item) throws IOException;
+	}
+
 	private String content;
 	private HttpTransfer response;
 	private UrlItem urlItem;
     private IHtmlParser parser;
     private String encoding;
     private String contentType;
+        
 	public String getContent() {
 		return content;
 	}
@@ -32,6 +42,8 @@ public class HtmlItem implements IItem {
 		this.content = content;
 	}
 
+	
+	
 	public String getContentType() {
 		return contentType;
 	}
@@ -69,51 +81,40 @@ public class HtmlItem implements IItem {
 	public HtmlItem(HttpTransfer response,UrlItem item) throws UnsupportedEncodingException{
 		this.urlItem=item;
 		this.response=response;
-        parser= ParserFactory.getHtmlParser( response, item);
+        parser= ParserManager.getHtmlParser(response, item);
 		this.contentType=parser.getContentType(); 
         this.encoding=parser.getEncoding();
         this.content=parser.getContent();
 	}
-
-	
-	public List<UrlItem> getUrlList(){
-		List<UrlItem> list= parser.getHtmlUrlList();
-		return list;
+    
+	public HtmlItem(String content,String encoding,String contentType){
+		this.content=content;
+		this.contentType=contentType;
+		this.encoding=encoding;
+	}
+	public HtmlItem(String content,String encoding){
+		this(content,encoding,"text/html");
 	}
 	
-	public void Save() throws IOException{
-		Save(DownloadManager.getSourcePath(),DownloadManager.getResultPath());
+    
+
+	
+	public void save() throws IOException{
+	   List<HtmlSaveHandler> handlers=DownloadManager.getHtmlSaveHandlers();
+	   for(HtmlSaveHandler handler:handlers){
+		   handler.save(this);
+	   }
 	}
 	
 	
-	public  void Save(String sourcePath,String resultPath) throws IOException{
-		IParseResult result=parser.parse();
-		if(result!=null){
-		 String name=result.getTitle().trim();
-				name=URLCoder.encodePath( result.getTitle());	
-	      
-		  if(name.length()>10){
-			  name=name.substring(0,10);
-		  }
-		 name= name.replaceAll("\\|\\W+|\\/|:|\\.|\"|\\*|\\?|<|>|\\|","");
-		 
-		 String host= urlItem.getUri().getHost();
-		 String src=sourcePath+"/"+host;
-	     DownloadManager.mkdirs(src);
-		 String res=resultPath+"/"+host;
-		 DownloadManager.mkdirs(res);	 
-         System.out.println("save:"+name);
-	     FileUtil.writeString(src+"/"+name+".html", content, encoding); 
-	     FileUtil.writeString(res+"/"+name+".html", result.getOutput(), encoding);
-	     FileUtil.appendString(res+"/title_"+encoding+".txt", result.getOutput().length()+":"+result.getTitle()+"\r\n",encoding );
-
-	    }
+	public IHtmlParser getParser() {
+		return parser;
 	}
 
-
-	
 	public String getKey() {
-		return "html/"+this.urlItem.getKey();
+		return this.urlItem.getKey();
 	}
+
+
 	
 }

@@ -1,23 +1,41 @@
 package lec.crawer.algo.rdab;
 
+import java.util.Date;
 import java.util.List;
 
+import jodd.jerry.Jerry;
+import jodd.util.StringUtil;
+
+import lec.crawer.model.ImageItem;
+import lec.crawer.model.RssItem;
 import lec.crawer.model.UrlItem;
 import lec.crawer.parse.IParseResult;
 
 public class ReadAbilityResult implements IParseResult {
 	
-    String content;
+	private String content;
     
-    String title;
+	private String title;
     
-    UrlItem nextPageUrl;
+	private String rssTitle;
+	
+	private UrlItem nextPageUrl;
     
-    UrlItem provPageUrl;
+	private UrlItem provPageUrl;
     
-    List<UrlItem> relatePageUrls;
+	private List<UrlItem> relatePageUrls;
     
+	private List<ImageItem> images;
+	
+    private UrlItem currentUrl;
+    
+    public ReadAbilityResult(UrlItem item){
+    	  this.currentUrl=item;
+  		if(currentUrl instanceof RssItem){
+  			rssTitle= ((RssItem)currentUrl).getTitle();
 
+  		 }
+    }
 
 	public UrlItem getNextPageUrl() {
 		return nextPageUrl;
@@ -52,6 +70,9 @@ public class ReadAbilityResult implements IParseResult {
 	}
 
 	public String getTitle() {
+		if(!StringUtil.isEmpty(rssTitle)){
+			return rssTitle;
+		}
 		return title;
 	}
 
@@ -65,18 +86,18 @@ public class ReadAbilityResult implements IParseResult {
 		
 		sb.append("<head>");
 		 sb.append("<title>");
-	     	sb.append(title);
+	     	sb.append(getTitle());
 		 sb.append("</title>");
 		sb.append("</head>");
 		
 		sb.append("<body>");
 
 		sb.append("<h2>");
-		 sb.append(title);
+		 sb.append(getTitle());
 		sb.append("</h2>");
 		
         sb.append("<article>");
-		  sb.append(content);
+		  sb.append(getContent());
         sb.append("</article>");
 		
         sb.append("<ul>");
@@ -102,6 +123,49 @@ public class ReadAbilityResult implements IParseResult {
 		sb.append("</html>");
 		
 		return sb.toString();
+	}
+
+	public String getCleanContent() {
+	        Jerry jerry=  Jerry.jerry(content);	        
+	        String txt= jerry.text();
+	        return title+"\r\n"+txt;
+	}
+
+	public Date getPublishedDate() {
+		if(currentUrl instanceof RssItem){
+			return ((RssItem)currentUrl).getPublishedDate();
+		}
+		return new Date();
+	}
+
+	public String getAuthor() {
+		if(currentUrl instanceof RssItem){
+			return ((RssItem)currentUrl).getAuthor();
+		}
+		return  currentUrl.getUri().getHost();
+	}
+
+	public String getSource() {	
+		return currentUrl.getUri().getHost();
+	}
+
+	public UrlItem getCurrentPageUrl() {
+		return currentUrl;
+	}
+
+	public String getDescription() {
+		if(currentUrl instanceof RssItem){
+			return ((RssItem)currentUrl).getDescription();
+		}
+		return "";
+	}
+
+	public void setImageList(List<ImageItem> list){
+		this.images=list;
+	}
+	
+	public List<ImageItem> getImageList() {
+		return this.images;
 	}
 
     

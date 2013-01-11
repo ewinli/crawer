@@ -2,6 +2,7 @@ package lec.crawer.queue;
 
 
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jodd.util.StringUtil;
@@ -18,7 +19,7 @@ public class MemcachedQueue<T extends IItem> implements IQueue<T> {
 
 	private String itemKey;
 
-	private  LinkedList<String> keyQueue;
+	private  ConcurrentLinkedQueue<String> keyQueue;
 
 	private int time = 3600 * 24 * 7;
 
@@ -33,19 +34,20 @@ public class MemcachedQueue<T extends IItem> implements IQueue<T> {
 
 		try{
 			System.out.println(key);
-		this.keyQueue = cache.get(LinkedList.class, key);
+		this.keyQueue = cache.get(ConcurrentLinkedQueue.class, key);
 		}catch(Exception ex){
 		  
 		}
 
 		if (this.keyQueue == null) {
-			this.keyQueue = new LinkedList<String>();
-			cache.safeSet(LinkedList.class, key, this.keyQueue, time);
+			System.out.println("new");
+			this.keyQueue = new ConcurrentLinkedQueue<String>();
+			cache.safeSet(ConcurrentLinkedQueue.class, key, this.keyQueue, time);
 		}
 	}
 
 	public T getFirst() {
-		String key=keyQueue.getFirst();
+		String key=keyQueue.peek();
 		if(key==null) return null;
 		return cache.get(clazz, key);
 	}
@@ -57,9 +59,10 @@ public class MemcachedQueue<T extends IItem> implements IQueue<T> {
 			if (keyQueue.isEmpty()) {
 			  return null;
 			}
-			String key = keyQueue.removeFirst();
+			String key = keyQueue.poll();
 			if(key==null) return null;
 			T item = cache.get(clazz,key);
+			cache.safeSet(ConcurrentLinkedQueue.class, this.key, this.keyQueue, time);
 			cache.safeDelete(key);
 			return item;
 	     }
@@ -68,6 +71,7 @@ public class MemcachedQueue<T extends IItem> implements IQueue<T> {
 	public void add(T item) {
 	     synchronized (keyQueue) {
 		    keyQueue.add(itemKey + item.getKey());
+			cache.safeSet(ConcurrentLinkedQueue.class, this.key, this.keyQueue, time);
 		    cache.safeSet(clazz, itemKey + item.getKey(), item, time);
 	     }
 	}
